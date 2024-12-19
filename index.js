@@ -25,7 +25,7 @@ application.use('/user/api/v1/', UserRouter);
 // home router
 application.get('/', (req, res) => {
     res.status(200).json({
-        msg: "SERVER IS RUNNING!"
+        msg: "SERVER IS RUNNING! Type /user/api/v1/getAllUser to get all the users."
     })
 })
 
