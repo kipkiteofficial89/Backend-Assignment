@@ -95,45 +95,55 @@ exports.updateUser = async (req, res) => {
     try {
         const { userId } = req;
         const { firstName, lastName, NIDNumber, phoneNumber, password, bloodGroup } = req.body;
+
         const findUser = await User.findById(userId);
         if (!findUser) {
             return res.status(400).json({
                 msg: 'User does not exist.'
-            })
-        } else {
-            let fn = firstName !== null ? firstName : findUser.firstName;
-            let ln = lastName !== null ? lastName : findUser.lastName;
-            let nid = NIDNumber !== null ? NIDNumber : findUser.NIDNumber;
-            let ph = phoneNumber !== null ? phoneNumber : findUser.phoneNumber;
-            let pw = password !== null ? password : findUser.password;
-            let bg = bloodGroup !== null ? bloodGroup : findUser.bloodGroup;
-
-            const updateUser = await User.findByIdAndUpdate(
-                { _id: userId },
-                {
-                    $set: {
-                        firstName: fn,
-                        lastName: ln,
-                        NIDNumber: nid,
-                        phoneNumber: ph,
-                        password: pw,
-                        bloodGroup: bg
-                    }
-                }
-            )
-            if (updateUser) {
-                return res.status(200).json({
-                    msg: 'User updated successfully.'
-                })
-            }
-            return res.status(400).json({
-                msg: 'Something went to wrong when updating the user.'
-            })
+            });
         }
+
+        let hashedPassword = findUser.password;
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            hashedPassword = await bcrypt.hash(password, salt);
+        }
+
+        let fn = firstName || findUser.firstName;
+        let ln = lastName || findUser.lastName;
+        let nid = NIDNumber || findUser.NIDNumber;
+        let ph = phoneNumber || findUser.phoneNumber;
+        let bg = bloodGroup || findUser.bloodGroup;
+
+        const updateUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                $set: {
+                    firstName: fn,
+                    lastName: ln,
+                    NIDNumber: nid,
+                    phoneNumber: ph,
+                    password: hashedPassword,
+                    bloodGroup: bg
+                }
+            },
+            { new: true }
+        );
+
+        if (updateUser) {
+            return res.status(200).json({
+                msg: 'User updated successfully.',
+            });
+        }
+
+        return res.status(400).json({
+            msg: 'Something went wrong when updating the user.'
+        });
     } catch (err) {
         console.log(err);
     }
-}
+};
+
 
 exports.deleteUser = async (req, res) => {
     try {
