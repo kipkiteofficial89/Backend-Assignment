@@ -22,6 +22,13 @@ application.use(cors());
 // routes connection
 application.use('/user/api/v1/', UserRouter);
 
+// home router
+application.get('/', (req, res) => {
+    res.status(200).json({
+        msg: "SERVER IS RUNNING!"
+    })
+})
+
 // error handler middleware
 application.use((err, req, res, next) => {
     res.status(500).send(err);
